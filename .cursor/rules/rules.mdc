@@ -1,0 +1,47 @@
+---
+alwaysApply: true
+---
+# NovaPay Salary Advance — Build Rules
+
+## Context
+This is a first-time salary-advance (payday loan) flow for NovaPay, a mobile
+wallet in an emerging market scarred by predatory digital lending. Lending is
+the highest-trust moment in the app. Every screen must feel honest and humane —
+never predatory. Trust beats conversion, always.
+
+## Design system (NovaKit Lite)
+- Build ONLY from existing components in `src/novakit` (Button, Card, TextField,
+BottomSheet, AppBar, ListRow, AmountText, Toast) and the tokens in
+`tailwind.config.js`.
+- Do NOT invent colors, spacing, radii, or type scales. 844pxUse the tokens.
+- Extend the system only when genuinely needed. When you do, call it out
+explicitly in a comment and keep it minimal and consistent with existing tokens.
+- Mobile-first. Everything renders in a ~390px frame.
+
+## Product rules (treat as fact)
+- Three loan tiers: PKR 5,000 / 10,000 / 15,000. User picks up to their limit.
+- Fixed fee = 3% of amount, charged once (NOT monthly interest).
+5,000→150, 10,000→300, 15,000→450.
+- Single repayment, pulled in full on the user's next payday.
+- Total cost of credit AND the repayment date must be clear at the moment of
+decision — on the same screen as the Accept button.
+- A "haircut" may apply: disbursed amount can be less than requested.
+- Decline reasons: credit_score, income_unverified, other.
+- Repayment states: on_time, late, default (30+ days).
+
+## Trust rules (the heart of this)
+- Show the full, honest total cost before any commitment. No hidden fees, no
+fine print, no surprises.
+- Never use alarming red, guilt-tripping language, false urgency, countdowns,
+or dark patterns that nudge borrowing.
+- Decline, over-limit, and late-payment states must be calm, factual, and
+respectful — give an honest reason and a clear path forward.
+- Prefer restraint: fewer screens, clearer choices. The best error is the one
+that never happens.
+- Write copy like a decent human talking to a stressed person — plain, warm,
+never clinical or threatening.
+
+## Code
+- React + Tailwind, built on the existing Vite starter.
+- Keep components reusable and tidy. Small, logical commits.
+```
