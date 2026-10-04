@@ -13,6 +13,7 @@ npm run dev
 
 Then open the local URL Vite prints. The app renders inside a ~390px mobile frame — keep your work mobile-first.
 
+Beside (or below) the frame is a plain **Demo controls** panel for reviewers: reset the prototype state, toggle full vs partial approval, and optionally simulate an accept failure. It is not part of the product UI.
 
 ```bash
 npm run build   # production build (also a quick way to check nothing is broken)

@@ -7,3 +7,6 @@ export { default as AppBar } from "./AppBar.jsx";
 export { default as BottomSheet } from "./BottomSheet.jsx";
 export { default as Toast } from "./Toast.jsx";
 export { default as AmountText } from "./AmountText.jsx";
+export { default as AmountChip } from "./AmountChip.jsx";
+export { default as IconButton } from "./IconButton.jsx";
+export { default as InfoBanner } from "./InfoBanner.jsx";
