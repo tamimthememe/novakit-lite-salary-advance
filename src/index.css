@@ -9,5 +9,135 @@
 
 body {
   margin: 0;
-  background: #e9eaee;
+  background: #e9eaee; /* page behind the phone frame */
+}
+
+/* Soft ambient drift — continuous transform loops, success screen */
+@keyframes ambient-float-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40% {
+    transform: translate3d(var(--drift-x, 8px), var(--drift-y, -28px), 0);
+  }
+  70% {
+    transform: translate3d(
+      calc(var(--drift-x, 8px) * -0.6),
+      calc(var(--drift-y, -28px) * 0.35),
+      0
+    );
+  }
+}
+
+@keyframes ambient-float-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  35% {
+    transform: translate3d(
+      calc(var(--drift-x, -10px) * -1),
+      calc(var(--drift-y, -22px) * 0.55),
+      0
+    );
+  }
+  65% {
+    transform: translate3d(var(--drift-x, -10px), var(--drift-y, -22px), 0);
+  }
+}
+
+@keyframes ambient-float-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(var(--drift-x, 6px), var(--drift-y, -32px), 0);
+  }
+}
+
+.ambient-particle {
+  will-change: transform;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* Soft settle after home balance count-up */
+@keyframes balance-settle {
+  0% {
+    opacity: 0.88;
+    transform: scale(0.985);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.balance-settle {
+  display: inline-block;
+  transform-origin: left center;
+  animation: balance-settle 420ms ease-out forwards;
+}
+
+/* Recent activity — calm staggered entrance */
+@keyframes activity-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes activity-row-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes activity-row-highlight {
+  0% {
+    background-color: theme("colors.neutral.50");
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.activity-row-in {
+  animation: activity-row-in 250ms ease-out both;
+}
+
+.activity-row-enter-new {
+  animation:
+    activity-row-slide 300ms ease-out both,
+    activity-row-highlight 1s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-particle {
+    animation: none !important;
+  }
+
+  .balance-settle {
+    animation: none !important;
+  }
+
+  .activity-row-in,
+  .activity-row-enter-new {
+    animation: none !important;
+  }
 }
