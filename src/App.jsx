@@ -1,14 +1,29 @@
 import { useState } from "react";
 import { AppBar, Card, ListRow, Button, AmountText } from "./novakit";
 import TermsOffer from "./TermsOffer.jsx";
+import ConfirmAdvance from "./ConfirmAdvance.jsx";
 
 export default function App() {
   const [screen, setScreen] = useState("home");
+  const [selectedAmount, setSelectedAmount] = useState(5000);
+
   return (
     <div className="min-h-screen w-full flex justify-center py-6">
       <div className="relative w-[390px] h-[844px] bg-white rounded-[28px] shadow-xl overflow-hidden border border-neutral-300">
         {screen === "offer" ? (
-          <TermsOffer onBack={() => setScreen("home")} onContinue={() => setScreen("home")} />
+          <TermsOffer
+            onBack={() => setScreen("home")}
+            onContinue={(amount) => {
+              setSelectedAmount(amount);
+              setScreen("confirm");
+            }}
+          />
+        ) : screen === "confirm" ? (
+          <ConfirmAdvance
+            amount={selectedAmount}
+            onBack={() => setScreen("offer")}
+            onAccept={() => setScreen("home")}
+          />
         ) : (
           <>
             <AppBar title="NovaPay" />
