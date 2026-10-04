@@ -11,6 +11,7 @@ import {
 import TermsOffer from "./TermsOffer.jsx";
 import ConfirmAdvance from "./ConfirmAdvance.jsx";
 import AdvanceSuccess from "./AdvanceSuccess.jsx";
+import AcceptFailureSheet from "./AcceptFailure.jsx";
 
 const BASE_BALANCE = 4250;
 const COUNT_MS = 700;
@@ -56,15 +57,34 @@ export default function App() {
   const [toast, setToast] = useState({ open: false, message: "" });
   const [homeEntranceKey, setHomeEntranceKey] = useState(0);
   const [highlightAdvance, setHighlightAdvance] = useState(false);
+  const [acceptFailureOpen, setAcceptFailureOpen] = useState(false);
+  const [pendingAccept, setPendingAccept] = useState(null);
+  const [simulateAcceptFailure, setSimulateAcceptFailure] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     if (screen === "home") setHomeEntranceKey((k) => k + 1);
   }, [screen]);
 
-  function handleAccept({ amount, fee, total }) {
+  function completeAccept({ amount, fee, total }) {
     setAccepted({ amount, fee, total, acceptedAt: new Date() });
+    setPendingAccept(null);
+    setAcceptFailureOpen(false);
     setScreen("success");
+  }
+
+  function handleAccept(payload) {
+    if (simulateAcceptFailure) {
+      setPendingAccept(payload);
+      setAcceptFailureOpen(true);
+      return;
+    }
+    completeAccept(payload);
+  }
+
+  function handleRetryAccept() {
+    setAcceptFailureOpen(false);
+    if (pendingAccept) completeAccept(pendingAccept);
   }
 
   function handleDone() {
@@ -107,12 +127,19 @@ export default function App() {
             }}
           />
         ) : screen === "confirm" ? (
-          <ConfirmAdvance
-            amount={selectedAmount}
-            onBack={() => setScreen("offer")}
-            onAccept={handleAccept}
-            onNotNow={() => setScreen("home")}
-          />
+          <>
+            <ConfirmAdvance
+              amount={selectedAmount}
+              onBack={() => setScreen("offer")}
+              onAccept={handleAccept}
+              onNotNow={() => setScreen("home")}
+            />
+            <AcceptFailureSheet
+              open={acceptFailureOpen}
+              onTryAgain={handleRetryAccept}
+              onNotNow={() => setAcceptFailureOpen(false)}
+            />
+          </>
         ) : screen === "success" && accepted ? (
           <AdvanceSuccess
             amount={accepted.amount}
