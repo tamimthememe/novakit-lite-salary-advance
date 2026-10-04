@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  AppBar, Card, ListRow, Button, AmountText, Toast,
+  AppBar,
+  Card,
+  ListRow,
+  Button,
+  AmountText,
+  Toast,
+  InfoBanner,
 } from "./novakit";
 import TermsOffer from "./TermsOffer.jsx";
 import ConfirmAdvance from "./ConfirmAdvance.jsx";
@@ -9,6 +15,7 @@ import AdvanceSuccess from "./AdvanceSuccess.jsx";
 const BASE_BALANCE = 4250;
 const COUNT_MS = 700;
 const TOAST_MS = 3000;
+const REPAYMENT_DATE = "28 Oct 2026";
 
 function easeOutCubic(t) {
   return 1 - (1 - t) ** 3;
@@ -16,6 +23,15 @@ function easeOutCubic(t) {
 
 function formatRs(amount) {
   return `Rs ${new Intl.NumberFormat("en-PK").format(amount ?? 0)}`;
+}
+
+function formatActivityTime(date) {
+  const time = (date ?? new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `Today, ${time}`;
 }
 
 function usePrefersReducedMotion() {
@@ -34,9 +50,17 @@ export default function App() {
   const [screen, setScreen] = useState("home");
   const [selectedAmount, setSelectedAmount] = useState(5000);
   const [accepted, setAccepted] = useState(null);
+  const [activeAdvance, setActiveAdvance] = useState(null);
   const [balance, setBalance] = useState(BASE_BALANCE);
   const [balanceFrom, setBalanceFrom] = useState(null);
   const [toast, setToast] = useState({ open: false, message: "" });
+  const [homeEntranceKey, setHomeEntranceKey] = useState(0);
+  const [highlightAdvance, setHighlightAdvance] = useState(false);
+  const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (screen === "home") setHomeEntranceKey((k) => k + 1);
+  }, [screen]);
 
   function handleAccept({ amount, fee, total }) {
     setAccepted({ amount, fee, total, acceptedAt: new Date() });
@@ -49,12 +73,26 @@ export default function App() {
       return;
     }
     const added = accepted.amount;
+    setActiveAdvance(accepted);
+    setHighlightAdvance(true);
     setBalanceFrom(balance);
     setBalance(balance + added);
     setToast({ open: true, message: `${formatRs(added)} added to your wallet` });
     setAccepted(null);
     setScreen("home");
     window.setTimeout(() => setToast({ open: false, message: "" }), TOAST_MS);
+  }
+
+  function activityRowClass(index, isNewAdvance = false) {
+    if (reducedMotion) return "";
+    if (isNewAdvance && highlightAdvance) return "activity-row-enter-new";
+    return "activity-row-in";
+  }
+
+  function activityRowStyle(index, isNewAdvance = false) {
+    if (reducedMotion) return undefined;
+    if (isNewAdvance && highlightAdvance) return undefined;
+    return { animationDelay: `${index * 40}ms` };
   }
 
   return (
@@ -95,18 +133,81 @@ export default function App() {
                   />
                 </div>
               </Card>
-              <Card className="space-y-3">
-                <div>
-                  <div className="text-title text-neutral-900">You&apos;re approved for an advance</div>
-                  <div className="text-body text-neutral-700 mt-1">An advance against your salary, repaid on payday.</div>
-                </div>
-                <Button size="lg" onClick={() => setScreen("offer")}>See your offer</Button>
-              </Card>
-              <Card>
+
+              {activeAdvance ? (
+                <InfoBanner tone="accent" icon="i">
+                  <div className="text-body font-semibold text-neutral-900 leading-snug">
+                    Active advance
+                  </div>
+                  <div className="text-body text-neutral-700 leading-snug">
+                    {formatRs(activeAdvance.total)} due on {REPAYMENT_DATE}
+                  </div>
+                </InfoBanner>
+              ) : (
+                <Card className="space-y-3">
+                  <div>
+                    <div className="text-title text-neutral-900">
+                      You&apos;re approved for an advance
+                    </div>
+                    <div className="text-body text-neutral-700 mt-1">
+                      An advance against your salary, repaid on payday.
+                    </div>
+                  </div>
+                  <Button size="lg" onClick={() => setScreen("offer")}>
+                    See your offer
+                  </Button>
+                </Card>
+              )}
+
+              <Card key={homeEntranceKey}>
                 <div className="text-caption text-neutral-500 mb-1">Recent activity</div>
-                <ListRow icon="↑" title="Sent to Ahmed K." subtitle="3 Oct" trailing={<AmountText amount={1500} size="body" />} />
-                <ListRow icon="↓" title="Salary credited" subtitle="28 Sep" trailing={<AmountText amount={68000} size="body" />} />
-                <ListRow icon="↑" title="Mobile top-up" subtitle="25 Sep" trailing={<AmountText amount={500} size="body" />} />
+                {activeAdvance ? (
+                  <ListRow
+                    icon={<WalletGlyph />}
+                    iconTone="success"
+                    title="Salary advance"
+                    subtitle={formatActivityTime(activeAdvance.acceptedAt)}
+                    trailing={
+                      <AmountText
+                        amount={activeAdvance.amount}
+                        size="body"
+                        signed="in"
+                      />
+                    }
+                    className={activityRowClass(0, true)}
+                    style={activityRowStyle(0, true)}
+                    onAnimationEnd={(e) => {
+                      if (e.animationName === "activity-row-highlight") {
+                        setHighlightAdvance(false);
+                      }
+                    }}
+                  />
+                ) : null}
+                <ListRow
+                  icon="↑"
+                  title="Sent to Ahmed K."
+                  subtitle="3 Oct"
+                  trailing={<AmountText amount={1500} size="body" signed="out" />}
+                  className={activityRowClass(activeAdvance ? 1 : 0)}
+                  style={activityRowStyle(activeAdvance ? 1 : 0)}
+                />
+                <ListRow
+                  icon="↓"
+                  iconTone="success"
+                  title="Salary credited"
+                  subtitle="28 Sep"
+                  trailing={<AmountText amount={68000} size="body" signed="in" />}
+                  className={activityRowClass(activeAdvance ? 2 : 1)}
+                  style={activityRowStyle(activeAdvance ? 2 : 1)}
+                />
+                <ListRow
+                  icon="↑"
+                  title="Mobile top-up"
+                  subtitle="25 Sep"
+                  trailing={<AmountText amount={500} size="body" signed="out" />}
+                  className={activityRowClass(activeAdvance ? 3 : 2)}
+                  style={activityRowStyle(activeAdvance ? 3 : 2)}
+                />
               </Card>
             </main>
             <Toast open={toast.open} message={toast.message} />
@@ -114,6 +215,16 @@ export default function App() {
         )}
       </div>
     </div>
+  );
+}
+
+function WalletGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <rect x="3.5" y="7" width="21" height="15" rx="2.5" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M3.5 11.5h21" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <circle cx="19.5" cy="16.5" r="1.5" fill="currentColor" />
+    </svg>
   );
 }
 
